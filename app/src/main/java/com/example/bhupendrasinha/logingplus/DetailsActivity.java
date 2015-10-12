@@ -1,9 +1,13 @@
 package com.example.bhupendrasinha.logingplus;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,12 +17,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class DetailsActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -26,6 +39,7 @@ public class DetailsActivity extends AppCompatActivity
 
     //GPlus
     GoogleApiClient mGoogleApiClient;
+    ImageView imgV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +51,7 @@ public class DetailsActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Intent intent = getIntent();
-        String profileName= intent.getStringExtra("ProfileName"); //if it's a string you stored.
 
-        TextView welcome = (TextView) findViewById(R.id.welcomeMsg);
-        welcome.setText("Welcome " + profileName);
-
-        //*********************
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,6 +69,68 @@ public class DetailsActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        getGplusData();
+
+
+    }
+
+
+    public void getGplusData() {
+
+
+        // After successful Loing
+        Intent intent = getIntent();
+        String profileDataJSON = intent.getStringExtra("Profiledetails"); //if it's a string you stored.
+
+        try {
+
+            JSONObject obj = new JSONObject(profileDataJSON);
+            TextView welcome = (TextView) findViewById(R.id.welcomeMsg);
+            TextView userName  =  (TextView) findViewById(R.id.userName);
+            TextView userEmail  =  (TextView) findViewById(R.id.useremailId);
+            String url = obj.getString("imageURL").toString(); //if it's a string you stored.
+
+            //Setting values from JSON Object
+            userName.setText(obj.getString("name").toString());
+            userEmail.setText(obj.getString("emailID").toString());
+
+            Log.d("Image URL : ",url);
+            imgV = (ImageView) findViewById(R.id.imageView);
+            downloadAvatar(url);
+
+
+        } catch (JSONException e){
+            Log.d("Error", e.getMessage());
+        }
+    }
+
+
+    private synchronized void downloadAvatar(final String url) {
+        AsyncTask<Void, Void, Bitmap> task = new AsyncTask<Void, Void, Bitmap>() {
+
+            @Override
+            public Bitmap doInBackground(Void... params) {
+                URL fbAvatarUrl = null;
+                Bitmap fbAvatarBitmap = null;
+                try {
+                    fbAvatarUrl = new URL(url);
+                    fbAvatarBitmap = BitmapFactory.decodeStream(fbAvatarUrl.openConnection().getInputStream());
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return fbAvatarBitmap;
+            }
+
+            @Override
+            protected void onPostExecute(Bitmap result) {
+                imgV.setImageBitmap(result);
+            }
+
+        };
+        task.execute();
     }
 
     @Override

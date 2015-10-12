@@ -2,32 +2,25 @@ package com.example.bhupendrasinha.logingplus;
 
 import android.content.Intent;
 import android.content.IntentSender;
-import android.support.v7.app.AppCompatActivity;
-
 import android.os.Bundle;
-
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-
 import android.view.View;
-
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
 /**
- * A login screen that offers login via email/password.
- * https://github.com/googlesamples/google-services/blob/master/android/signin/app/src/main/java/com/google/samples/quickstart/signin/MainActivity.java
+ * Created by bhupendra on 12-10-2015.
  */
-public class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener {
+public class BaseClass extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, View.OnClickListener
+{
 
 
     //GPlus
@@ -89,10 +82,9 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
         String name = currentPerson.getDisplayName();
         String imageURL = currentPerson.getImage().getUrl();
 
-        //changing the default size of image which API return i.e 50 X 50
         imageURL = imageURL.substring(0,
                 imageURL.length() - 2)
-                + 150;
+                + 80;
 
         String emailID =  Plus.AccountApi.getAccountName(mGoogleApiClient);
 
@@ -105,18 +97,12 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
             object.put("emailID",emailID);
 
             Log.d(TAG, "Bhupi:" + name);
-            Log.d(TAG, "Bhupi:" + imageURL);
-
-            Intent intent = new Intent(LoginActivity.this, DetailsActivity.class);
-            intent.putExtra("Profiledetails", object.toString());
-            startActivity(intent);
-
+            Log.d(TAG, "Bhupi:" +imageURL);
         }
         catch (JSONException ex)
         {
             Log.d(TAG, "Error:" + ex.getMessage());
         }
-
 
 
 
@@ -161,56 +147,4 @@ public class LoginActivity extends AppCompatActivity implements GoogleApiClient.
     }
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(Plus.API)
-                .addScope(new Scope(Scopes.PROFILE))
-                .addScope(new Scope(Scopes.EMAIL))
-                .build();
-
-        setContentView(R.layout.activity_login);
-
-        //Gplus
-        findViewById(R.id.sign_in_button).setOnClickListener(this);
-
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        //GPlus
-        Log.d(TAG, "onActivityResult:" + requestCode + ":" + resultCode + ":" + data);
-
-        if (requestCode == RC_SIGN_IN) {
-            // If the error resolution was not successful we should not resolve further.
-            if (resultCode != RESULT_OK) {
-                mShouldResolve = false;
-            }
-
-            mIsResolving = false;
-            mGoogleApiClient.connect();
-        }
-
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mGoogleApiClient.disconnect();
-    }
-
 }
-
